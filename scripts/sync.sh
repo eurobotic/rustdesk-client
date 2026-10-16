@@ -66,6 +66,7 @@ rm -rf "$tree/.git"
 "$here/scripts/apply-branding.sh" "$tree" "$branding" "${BRAND_PRODUCT_NAME:-}"
 python3 -I "$here/scripts/prune-jobs.py" "$tree/.github/workflows/flutter-build.yml"
 python3 -I "$here/scripts/grant-release-permission.py" "$tree/.github/workflows/flutter-tag.yml"
+python3 -I "$here/scripts/patch-nasm.py" "$tree/.github/workflows/flutter-build.yml"
 # fdroid.yml também dispara em tags e tenta criar uma release "fdroid-version" (falha com 403 aqui).
 rm -f "$tree/.github/workflows/fdroid.yml"
 
@@ -88,8 +89,10 @@ MD
 
 # --- Commit órfão e push da tag --------------------------------------------------------------
 git -C "$tree" init -q -b build
+# -f: o .gitignore do upstream ignora *png (entre outros) e os arquivos foram adicionados à força lá;
+# sem -f, ícones e imagens ficariam fora do commit e o build quebra procurando por eles.
 git -C "$tree" -c user.name="eurostec-rustdesk-bot" -c user.email="ti@eurobotics.com.br" \
-  add -A
+  add -f -A
 git -C "$tree" -c user.name="eurostec-rustdesk-bot" -c user.email="ti@eurobotics.com.br" \
   commit -q -m "RustDesk $tag com marca Eurostec ($build_tag)" -m "Upstream: rustdesk/rustdesk@$upstream_commit"
 git -C "$tree" tag "$build_tag"
