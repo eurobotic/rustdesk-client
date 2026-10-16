@@ -4,7 +4,7 @@ Cliente [RustDesk](https://github.com/rustdesk/rustdesk) com a marca da Eurostec
 
 **Download:** [releases/latest](https://github.com/eurobotic/rustdesk-client/releases/latest). Instaladores para Windows x64 (`.exe` e `.msi`), Linux x64 (`.deb` e `.AppImage`) e macOS (`.dmg` Intel e Apple Silicon).
 
-O servidor fica em [`eurobotic/rustdesk_srv`](https://github.com/eurobotic/rustdesk_srv) (Terraform na AWS).
+O servidor fica em [`eurobotic/rustdesk_srv`](https://github.com/eurobotic/rustdesk_srv) (Terraform na AWS). O passo a passo completo, do servidor à instalação nos computadores, está no [`SETUP.md`](https://github.com/eurobotic/rustdesk_srv/blob/main/SETUP.md) desse repositório.
 
 ## Como funciona
 

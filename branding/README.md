@@ -8,6 +8,10 @@
 
 O ícone **não** pode ter o fundo transparente demais nem detalhes finos: ele é reduzido até 16x16.
 
+Origem dos arquivos atuais (outubro de 2026), todos de https://eurostec.com.br:
+- `icon.svg`: desenhado a partir do símbolo oficial (as duas barras), com geometria medida em `mstile-150x150.png` e as cores do gradiente amostradas lá (#2985c1, #00acd8, #2388c3), sobre fundo branco arredondado. O `safari-pinned-tab.svg` do site é um traçado automático serrilhado e não serviu.
+- `logo.png`: `images/logo.png` do site, 288x60, que já cabe no limite de 300x60 do RustDesk.
+
 `placeholder/icon.svg` existe só para o teste local do pipeline (`scripts/sync.sh --dry-run` com `BRANDING_DIR=branding/placeholder`). O sync real falha se `branding/icon.*` não existir.
 
 O que o `scripts/apply-branding.sh` gera a partir desses insumos, por cima da árvore do RustDesk:
