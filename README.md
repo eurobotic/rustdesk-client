@@ -42,7 +42,14 @@ Uma vez só, em Settings do repositório:
 gh variable set RUSTDESK_HOST --body rustdesk.eurobotics.com.br
 gh variable set RUSTDESK_KEY --body "$(AWS_PROFILE=eurobotics ../rustdesk_srv/scripts/show-key.sh)"
 gh secret set CLIENT_REPO_TOKEN   # cola o PAT
+
+# O workflow do upstream publica a release com o token padrão do Actions e só declara
+# permissions no job de SBOM; o resto depende da permissão padrão do repositório ser "write".
+gh api -X PUT repos/eurobotic/rustdesk-client/actions/permissions/workflow \
+  -f default_workflow_permissions=write -F can_approve_pull_request_reviews=false
 ```
+
+Se a organização travar essa permissão em *read*, os builds terminam mas a release não é criada; o ajuste então é em Settings da organização › Actions › Workflow permissions.
 
 Os workflows do upstream rodam com `secrets: inherit`, então o PAT fica visível para o código do RustDesk naquela tag. Ele só tem poder sobre este repositório, o mesmo que o token padrão do Actions já teria.
 
