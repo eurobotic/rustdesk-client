@@ -1,9 +1,10 @@
 name: Promote release
 
 # O flutter-build.yml do upstream publica a release como pré-lançamento. Quando o "Flutter Tag
-# Build" de uma tag termina bem e os seis instaladores estão lá, renomeia os dmg (o upstream
-# chama os não assinados de rustdesk-X.Y.Z-x86_64-x86_64.dmg), tira o prerelease e marca como
-# latest, para o link releases/latest apontar para ela.
+# Build" de uma tag termina bem, renomeia os arquivos (rustdesk-X.Y.Z-... vira
+# <BRAND_APP_NAME>-X.Y.Z-..., e os dmg não assinados perdem a arquitetura duplicada), confere
+# os seis instaladores, tira o prerelease e marca como latest, para o link releases/latest
+# apontar para ela.
 on:
   workflow_run:
     workflows: ["Flutter Tag Build"]
@@ -19,6 +20,7 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       TAG: ${{ github.event.workflow_run.head_branch }}
+      APP: ${{ vars.BRAND_APP_NAME || 'rustdesk' }}
     steps:
       - name: Conferir os instaladores, renomear os dmg e promover
         run: |
@@ -26,23 +28,28 @@ jobs:
           [[ "$TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+-[0-9]+$ ]] || { echo "não é uma tag de build: $TAG"; exit 0; }
           version="${TAG%-*}"
 
-          # dmg: rustdesk-1.5.0-x86_64-x86_64.dmg -> rustdesk-1.5.0-x86_64.dmg
+          # rustdesk-1.5.0-x86_64-x86_64.dmg -> <APP>-1.5.0-x86_64.dmg; rustdesk-1.5.0-x86_64.exe -> <APP>-1.5.0-x86_64.exe
           gh api "repos/$GITHUB_REPOSITORY/releases/tags/$TAG" --jq '.assets[] | "\(.id) \(.name)"' |
           while read -r id name; do
+            new="$name"
             case "$name" in
-              rustdesk-"$version"-*-*.dmg)
-                arch="${name##*-}"; arch="${arch%.dmg}"
-                new="rustdesk-$version-$arch.dmg"
-                echo "renomeando $name -> $new"
-                gh api -X PATCH "repos/$GITHUB_REPOSITORY/releases/assets/$id" -f name="$new" >/dev/null ;;
+              rustdesk-"$version"-*-*.dmg) arch="${name##*-}"; new="rustdesk-$version-${arch}" ;;
             esac
+            case "$new" in
+              rustdesk-"$version"*) new="$APP-${new#rustdesk-}" ;;
+              rustdesk-unattended-*) new="$APP-unattended-${new#rustdesk-unattended-}" ;;
+            esac
+            if [ "$new" != "$name" ]; then
+              echo "renomeando $name -> $new"
+              gh api -X PATCH "repos/$GITHUB_REPOSITORY/releases/assets/$id" -f name="$new" >/dev/null
+            fi
           done
 
           assets="$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name')"
           missing=""
-          for want in "rustdesk-$version-x86_64.exe" "rustdesk-$version-x86_64.msi" \
-                      "rustdesk-$version-x86_64.deb" "rustdesk-$version-x86_64.AppImage" \
-                      "rustdesk-$version-x86_64.dmg" "rustdesk-$version-aarch64.dmg"; do
+          for want in "$APP-$version-x86_64.exe" "$APP-$version-x86_64.msi" \
+                      "$APP-$version-x86_64.deb" "$APP-$version-x86_64.AppImage" \
+                      "$APP-$version-x86_64.dmg" "$APP-$version-aarch64.dmg"; do
             grep -qx "$want" <<<"$assets" || missing="$missing $want"
           done
           if [ -n "$missing" ]; then
@@ -51,6 +58,6 @@ jobs:
           fi
           gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" \
             --prerelease=false --latest \
-            --title "RustDesk $version Eurostec ($TAG)" \
-            --notes "Cliente RustDesk $version com a marca da Eurostec e o servidor já configurado. Código fonte: esta tag. Windows: SmartScreen avisa porque o instalador não é assinado; clique em Mais informações › Executar assim mesmo. macOS: botão direito › Abrir na primeira vez."
+            --title "$APP $version ($TAG)" \
+            --notes "$APP: cliente RustDesk $version com a marca da Eurostec e o servidor já configurado. Código fonte: esta tag. Windows: SmartScreen avisa porque o instalador não é assinado; clique em Mais informações › Executar assim mesmo. macOS: botão direito › Abrir na primeira vez."
           echo "release $TAG promovida" >> "$GITHUB_STEP_SUMMARY"

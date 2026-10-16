@@ -40,6 +40,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RUSTDESK_HOST: ${{ vars.RUSTDESK_HOST }}
           RUSTDESK_KEY: ${{ vars.RUSTDESK_KEY }}
+          BRAND_APP_NAME: ${{ vars.BRAND_APP_NAME }}
           BRAND_PRODUCT_NAME: ${{ vars.BRAND_PRODUCT_NAME }}
           UPSTREAM_TAG: ${{ inputs.upstream_tag }}
           REBUILD: ${{ inputs.rebuild }}

@@ -9,7 +9,8 @@
 #   RUSTDESK_KEY        chave pública do servidor (obrigatório)
 #   UPSTREAM_TAG        tag do upstream; vazio = última release
 #   REBUILD             "true" para gerar uma tag nova mesmo que essa versão já tenha build
-#   BRAND_PRODUCT_NAME  nome do produto nos metadados do exe/app (opcional)
+#   BRAND_APP_NAME      nome do aplicativo no Windows e dos arquivos da release (opcional; ex. nexus-desk)
+#   BRAND_PRODUCT_NAME  nome nas propriedades do exe/app (opcional; padrão = BRAND_APP_NAME)
 #   BRANDING_DIR        pasta de marca (padrão: branding/)
 #   CLIENT_REPO         owner/nome deste repo (padrão: eurobotic/rustdesk-client)
 #   CLIENT_REPO_TOKEN   PAT com Contents e Workflows: write (obrigatório sem --dry-run)
@@ -63,7 +64,10 @@ rm -rf "$tree/.git"
 
 # --- Marca, servidor e poda dos jobs --------------------------------------------------------
 "$here/scripts/embed-server.sh" "$tree" "$RUSTDESK_HOST" "$RUSTDESK_KEY"
-"$here/scripts/apply-branding.sh" "$tree" "$branding" "${BRAND_PRODUCT_NAME:-}"
+"$here/scripts/apply-branding.sh" "$tree" "$branding" "${BRAND_PRODUCT_NAME:-${BRAND_APP_NAME:-}}"
+if [ -n "${BRAND_APP_NAME:-}" ]; then
+  "$here/scripts/set-app-name.sh" "$tree" "$BRAND_APP_NAME"
+fi
 python3 -I "$here/scripts/prune-jobs.py" "$tree/.github/workflows/flutter-build.yml"
 python3 -I "$here/scripts/grant-release-permission.py" "$tree/.github/workflows/flutter-tag.yml"
 python3 -I "$here/scripts/patch-nasm.py" "$tree/.github/workflows/flutter-build.yml"
@@ -79,6 +83,7 @@ cat > "$tree/EUROSTEC.md" <<MD
 Diferenças em relação ao upstream:
 - \`libs/hbb_common/src/config.rs\`: ID server \`$RUSTDESK_HOST\` e a chave pública do servidor da Eurostec.
 - Ícones e logos em \`res/\`, \`flutter/assets/\`, \`flutter/windows/runner/resources/\` e \`flutter/macos/Runner/\`.
+- Nome do aplicativo no Windows: \`${BRAND_APP_NAME:-RustDesk}\` (APP_NAME em config.rs, metadados winres, MSI). macOS e Linux seguem "RustDesk" por dentro.
 - \`.github/workflows/flutter-build.yml\`: só os jobs de Windows, Linux e macOS.
 - \`.github/workflows/flutter-tag.yml\`: \`permissions: contents: write\` para o token do Actions poder publicar a release.
 - \`.github/workflows/fdroid.yml\` removido (publicava um arquivo de versão para o F-Droid).

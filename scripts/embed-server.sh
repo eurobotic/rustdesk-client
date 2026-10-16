@@ -23,4 +23,16 @@ grep -q "^pub const RENDEZVOUS_SERVERS: &\[&str\] = &\[\"$host\"\];" "$cfg" \
 grep -q "^pub const RS_PUB_KEY: &str = \"$key\";" "$cfg" \
   || { echo "embed-server: RS_PUB_KEY não casou; o upstream mudou o formato de config.rs" >&2; exit 1; }
 
-echo "embed-server: ID server $host e chave embutidos em config.rs"
+# Trava os campos de servidor: tudo que está em OVERWRITE_SETTINGS vale sempre, não é salvo
+# pelo usuário e aparece desabilitado na tela de rede (is_option_fixed). É o mesmo mecanismo
+# que o custom.txt da versão Pro usa com "override-settings".
+over='pub static ref OVERWRITE_SETTINGS: RwLock<HashMap<String, String>> = RwLock::new(HashMap::from(['
+over="$over(\"custom-rendezvous-server\".to_owned(), \"$host\".to_owned()), "
+over="$over(\"relay-server\".to_owned(), \"$host:21117\".to_owned()), "
+over="$over(\"api-server\".to_owned(), String::new()), "
+over="$over(\"key\".to_owned(), \"$key\".to_owned())]));"
+sed -i -E "s|^    pub static ref OVERWRITE_SETTINGS: RwLock<HashMap<String, String>> = Default::default\(\);|    $over|" "$cfg"
+grep -q '^    pub static ref OVERWRITE_SETTINGS: RwLock<HashMap<String, String>> = RwLock::new(HashMap::from(\[("custom-rendezvous-server"' "$cfg" \
+  || { echo "embed-server: OVERWRITE_SETTINGS não casou; o upstream mudou a declaração em config.rs" >&2; exit 1; }
+
+echo "embed-server: ID server $host e chave embutidos e travados em config.rs"
