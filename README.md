@@ -20,7 +20,8 @@ main (este branch)                 tags 1.5.0-1, 1.5.1-1, ... (órfãs)
 2. Clona a tag do upstream com o submódulo `libs/hbb_common`, vendoriza o submódulo e aplica:
    - `embed-server.sh`: `RENDEZVOUS_SERVERS` e `RS_PUB_KEY` em `libs/hbb_common/src/config.rs`;
    - `apply-branding.sh`: todos os ícones e logos (lista em `branding/README.md`); opcionalmente o nome do produto nos metadados do `.exe` e do `.app`;
-   - `prune-jobs.py`: tira do `flutter-build.yml` os jobs de iOS, Android, sciter, flatpak, web e os `publish` que não usamos.
+   - `prune-jobs.py`: tira do `flutter-build.yml` os jobs de iOS, Android, sciter, flatpak, web e os `publish` que não usamos;
+   - `grant-release-permission.py`: acrescenta `permissions: contents: write` ao `flutter-tag.yml`, porque a organização deixa o token do Actions em somente leitura por padrão e a release precisa de escrita.
 3. Faz um commit **órfão** com a árvore pronta e empurra só a tag `X.Y.Z-N` (`N` é o contador de rebuild da mesma versão). O push usa um PAT porque push com o token do Actions não dispara workflows.
 4. O `flutter-tag.yml` **do upstream, naquela tag**, dispara e compila Windows, Linux e macOS exatamente como o projeto faz, publicando a release `X.Y.Z-N` como pré-lançamento. Zero manutenção dos passos de build: cada versão traz o workflow dela.
 5. `promote.yml` acorda quando esse build termina, confere os seis instaladores e tira o pré-lançamento, marcando como *latest*.
@@ -42,14 +43,9 @@ Uma vez só, em Settings do repositório:
 gh variable set RUSTDESK_HOST --body rustdesk.eurobotics.com.br
 gh variable set RUSTDESK_KEY --body "$(AWS_PROFILE=eurobotics ../rustdesk_srv/scripts/show-key.sh)"
 gh secret set CLIENT_REPO_TOKEN   # cola o PAT
-
-# O workflow do upstream publica a release com o token padrão do Actions e só declara
-# permissions no job de SBOM; o resto depende da permissão padrão do repositório ser "write".
-gh api -X PUT repos/eurobotic/rustdesk-client/actions/permissions/workflow \
-  -f default_workflow_permissions=write -F can_approve_pull_request_reviews=false
 ```
 
-Se a organização travar essa permissão em *read*, os builds terminam mas a release não é criada; o ajuste então é em Settings da organização › Actions › Workflow permissions.
+A organização eurobotic mantém o token do Actions em somente leitura por padrão e não deixa o repositório mudar isso; por isso o sync insere `permissions: contents: write` no `flutter-tag.yml` de cada tag, o que basta para a release ser criada.
 
 Os workflows do upstream rodam com `secrets: inherit`, então o PAT fica visível para o código do RustDesk naquela tag. Ele só tem poder sobre este repositório, o mesmo que o token padrão do Actions já teria.
 
