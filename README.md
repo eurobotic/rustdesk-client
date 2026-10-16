@@ -21,7 +21,8 @@ main (este branch)                 tags 1.5.0-1, 1.5.1-1, ... (órfãs)
    - `embed-server.sh`: `RENDEZVOUS_SERVERS` e `RS_PUB_KEY` em `libs/hbb_common/src/config.rs`;
    - `apply-branding.sh`: todos os ícones e logos (lista em `branding/README.md`); opcionalmente o nome do produto nos metadados do `.exe` e do `.app`;
    - `prune-jobs.py`: tira do `flutter-build.yml` os jobs de iOS, Android, sciter, flatpak, web e os `publish` que não usamos;
-   - `grant-release-permission.py`: acrescenta `permissions: contents: write` ao `flutter-tag.yml`, porque a organização deixa o token do Actions em somente leitura por padrão e a release precisa de escrita.
+   - `grant-release-permission.py`: acrescenta `permissions: contents: write` ao `flutter-tag.yml`, porque a organização deixa o token do Actions em somente leitura por padrão e a release precisa de escrita;
+   - remove `fdroid.yml`, que também dispara em tags só para publicar um arquivo de versão do F-Droid.
 3. Faz um commit **órfão** com a árvore pronta e empurra só a tag `X.Y.Z-N` (`N` é o contador de rebuild da mesma versão). O push usa um PAT porque push com o token do Actions não dispara workflows.
 4. O `flutter-tag.yml` **do upstream, naquela tag**, dispara e compila Windows, Linux e macOS exatamente como o projeto faz, publicando a release `X.Y.Z-N` como pré-lançamento. Zero manutenção dos passos de build: cada versão traz o workflow dela.
 5. `promote.yml` acorda quando esse build termina, confere os seis instaladores e tira o pré-lançamento, marcando como *latest*.

@@ -66,6 +66,8 @@ rm -rf "$tree/.git"
 "$here/scripts/apply-branding.sh" "$tree" "$branding" "${BRAND_PRODUCT_NAME:-}"
 python3 -I "$here/scripts/prune-jobs.py" "$tree/.github/workflows/flutter-build.yml"
 python3 -I "$here/scripts/grant-release-permission.py" "$tree/.github/workflows/flutter-tag.yml"
+# fdroid.yml também dispara em tags e tenta criar uma release "fdroid-version" (falha com 403 aqui).
+rm -f "$tree/.github/workflows/fdroid.yml"
 
 cat > "$tree/EUROSTEC.md" <<MD
 # RustDesk $tag com marca Eurostec
@@ -78,6 +80,7 @@ Diferenças em relação ao upstream:
 - Ícones e logos em \`res/\`, \`flutter/assets/\`, \`flutter/windows/runner/resources/\` e \`flutter/macos/Runner/\`.
 - \`.github/workflows/flutter-build.yml\`: só os jobs de Windows, Linux e macOS.
 - \`.github/workflows/flutter-tag.yml\`: \`permissions: contents: write\` para o token do Actions poder publicar a release.
+- \`.github/workflows/fdroid.yml\` removido (publicava um arquivo de versão para o F-Droid).
 - Submódulo \`libs/hbb_common\` vendorizado.
 
 Licença: AGPL-3.0, como o upstream. Este é o código fonte completo dos binários da release \`$build_tag\`.
