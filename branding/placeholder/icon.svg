@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- Placeholder provisório: duas barras azuis inspiradas no favicon da Eurostec.
+       Usado só pelo teste local do sync.sh em modo dry-run. Substitua por branding/icon.svg oficial. -->
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2bb3e6"/>
+      <stop offset="1" stop-color="#0a6fb5"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" rx="200" fill="#0b1f33"/>
+  <polygon points="300,820 470,204 610,204 440,820" fill="url(#g)"/>
+  <polygon points="520,820 690,204 830,204 660,820" fill="url(#g)"/>
+</svg>
