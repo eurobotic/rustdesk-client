@@ -64,7 +64,7 @@ gh workflow run sync.yml -f upstream_tag=1.5.0 -f rebuild=true
 RUSTDESK_HOST=rustdesk.eurobotics.com.br RUSTDESK_KEY=<chave> UPSTREAM_TAG=1.5.0 scripts/sync.sh --dry-run
 ```
 
-Para refazer um build que falhou por causa do runner, `rebuild=true` gera `X.Y.Z-2`; a release antiga pode ser apagada.
+Quando um job falha por um site externo fora do ar (o build do RustDesk baixa de aomedia.googlesource.com, www.nasm.us e outros), reexecute só ele: `gh run rerun <id> --failed`. Os jobs que passaram ficam, e o refeito adiciona o instalador à mesma release. `rebuild=true` é para quando a correção foi no nosso lado: gera `X.Y.Z-2`, e a release antiga pode ser apagada.
 
 Um repositório público sem commits por 60 dias tem o `schedule` desligado pelo GitHub; o aviso chega por e-mail e um clique religa.
 
