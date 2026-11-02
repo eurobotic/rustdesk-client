@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- Ícone do cliente RustDesk da Eurostec: o símbolo oficial (duas barras com o gradiente azul
+       da marca, medido nas imagens de eurostec.com.br) sobre fundo branco arredondado. -->
+  <defs>
+    <linearGradient id="barra" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2985c1"/>
+      <stop offset="0.5" stop-color="#00acd8"/>
+      <stop offset="1" stop-color="#2388c3"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" rx="224" fill="#ffffff"/>
+  <g transform="translate(-198.17,-100.36) scale(5.67)">
+    <polygon points="106.5,52.0 136.5,52.0 108.5,156.0 79.5,156.0" fill="url(#barra)"/>
+    <polygon points="142.0,58.0 171.0,58.0 143.5,164.0 113.5,164.0" fill="url(#barra)"/>
+  </g>
+</svg>
