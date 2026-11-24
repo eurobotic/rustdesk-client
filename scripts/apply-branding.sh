@@ -106,12 +106,12 @@ else
   im "$tree/flutter/assets/logo.png" -fuzz 35% -fill white -opaque black "$tree/flutter/assets/logo_dark.png"
 fi
 
-# --- Nome do produto nos metadados (opcional) -----------------------------------------------
+# --- Nome do produto nos metadados do .exe (opcional) ---------------------------------------
+# Só no Windows. No macOS, PRODUCT_NAME do AppInfo.xcconfig dá nome ao bundle, e o build.py do
+# upstream espera RustDesk.app pelo caminho fixo (cp do service, create-dmg): trocar quebra o build.
 if [ -n "$product_name" ]; then
   rc="$tree/flutter/windows/runner/Runner.rc"
-  xc="$tree/flutter/macos/Runner/Configs/AppInfo.xcconfig"
   sed -i -E "s/(VALUE \"CompanyName\", )\"[^\"]*\"/\1\"Eurostec\"/; s/(VALUE \"ProductName\", )\"[^\"]*\"/\1\"$product_name\"/; s/(VALUE \"FileDescription\", )\"[^\"]*\"/\1\"$product_name\"/" "$rc"
-  sed -i -E "s/^(PRODUCT_NAME = ).*/\1$product_name/" "$xc"
   grep -q "\"$product_name\"" "$rc" || { echo "apply-branding: não consegui trocar o nome em Runner.rc" >&2; exit 1; }
 fi
 

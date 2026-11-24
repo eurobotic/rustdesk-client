@@ -20,7 +20,7 @@ main (este branch)                 tags 1.5.0-1, 1.5.1-1, ... (órfãs)
 2. Clona a tag do upstream com o submódulo `libs/hbb_common`, vendoriza o submódulo e aplica:
    - `embed-server.sh`: `RENDEZVOUS_SERVERS` e `RS_PUB_KEY` em `libs/hbb_common/src/config.rs`, e os campos ID server, relay, API server (`https://<host>`) e chave entram em `OVERWRITE_SETTINGS`, o que os deixa fixos e desabilitados na tela de rede (o mesmo mecanismo do `custom.txt` da versão Pro). Com `RUSTDESK_WEBSOCKET=Y`, "Use WebSocket" entra ligado em `DEFAULT_SETTINGS` (veja [Porta 443](#porta-443-modo-websocket));
    - `set-app-name.sh` (quando `BRAND_APP_NAME` está definido): no Windows o aplicativo passa a se chamar `<nome>` por dentro: `<nome>.exe` instalado, serviço, firewall, atalhos, pasta em Program Files, título da janela e pasta de configuração `%APPDATA%\<nome>`; metadados do exe e MSI acompanham. macOS e Linux continuam `RustDesk.app` e `/usr/bin/rustdesk` por dentro, com ícone e logo da Eurostec, porque lá o nome é caminho de pacote;
-   - `apply-branding.sh`: todos os ícones e logos (lista em `branding/README.md`); opcionalmente o nome do produto nos metadados do `.exe` e do `.app`;
+   - `apply-branding.sh`: todos os ícones e logos (lista em `branding/README.md`); opcionalmente o nome do produto nos metadados do `.exe` (no macOS o bundle tem que continuar `RustDesk.app`, que o `build.py` do upstream procura pelo nome);
    - `prune-jobs.py`: tira do `flutter-build.yml` os jobs de iOS, Android, sciter, flatpak, web e os `publish` que não usamos;
    - `grant-release-permission.py`: acrescenta `permissions: contents: write` ao `flutter-tag.yml`, porque a organização deixa o token do Actions em somente leitura por padrão e a release precisa de escrita;
    - remove `fdroid.yml`, que também dispara em tags só para publicar um arquivo de versão do F-Droid;
@@ -41,7 +41,7 @@ Uma vez só, em Settings do repositório:
 | Variables | `RUSTDESK_KEY` | chave pública do servidor (`scripts/show-key.sh` no repo do servidor). Não é segredo. |
 | Variables | `RUSTDESK_WEBSOCKET` | opcional: `Y` gera o cliente com "Use WebSocket" ligado de fábrica (porta 443, sempre via relay). Vazio ou `N` mantém o modo direto, com o botão disponível para o usuário. |
 | Variables | `BRAND_APP_NAME` | `nexus-desk`: nome do aplicativo no Windows e prefixo dos arquivos da release. Só letras, números e hífen (regra do instalador). Vazio mantém "rustdesk". |
-| Variables | `BRAND_PRODUCT_NAME` | opcional: texto das propriedades do `.exe` e do `.app`, se quiser diferente de `BRAND_APP_NAME`. |
+| Variables | `BRAND_PRODUCT_NAME` | opcional: texto das propriedades do `.exe`, se quiser diferente de `BRAND_APP_NAME`. |
 | Secrets | `CLIENT_REPO_TOKEN` | PAT fine-grained só para este repositório, com **Contents: write** e **Workflows: write** (a tag carrega `.github/workflows`). |
 
 ```bash
