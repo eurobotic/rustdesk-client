@@ -7,6 +7,7 @@
 # Ambiente:
 #   RUSTDESK_HOST       host do servidor (obrigatório), ex. rustdesk.eurobotics.com.br
 #   RUSTDESK_KEY        chave pública do servidor (obrigatório)
+#   RUSTDESK_WEBSOCKET  "Y" liga "Use WebSocket" por padrão: wss://<host> na porta 443, sempre via relay (opcional)
 #   UPSTREAM_TAG        tag do upstream; vazio = última release
 #   REBUILD             "true" para gerar uma tag nova mesmo que essa versão já tenha build
 #   BRAND_APP_NAME      nome do aplicativo no Windows e dos arquivos da release (opcional; ex. nexus-desk)
@@ -63,7 +64,7 @@ rm -f "$tree/.gitmodules"
 rm -rf "$tree/.git"
 
 # --- Marca, servidor e poda dos jobs --------------------------------------------------------
-"$here/scripts/embed-server.sh" "$tree" "$RUSTDESK_HOST" "$RUSTDESK_KEY"
+"$here/scripts/embed-server.sh" "$tree" "$RUSTDESK_HOST" "$RUSTDESK_KEY" "${RUSTDESK_WEBSOCKET:-}"
 "$here/scripts/apply-branding.sh" "$tree" "$branding" "${BRAND_PRODUCT_NAME:-${BRAND_APP_NAME:-}}"
 if [ -n "${BRAND_APP_NAME:-}" ]; then
   "$here/scripts/set-app-name.sh" "$tree" "$BRAND_APP_NAME"
@@ -74,6 +75,8 @@ python3 -I "$here/scripts/patch-nasm.py" "$tree/.github/workflows/flutter-build.
 # fdroid.yml também dispara em tags e tenta criar uma release "fdroid-version" (falha com 403 aqui).
 rm -f "$tree/.github/workflows/fdroid.yml"
 
+ws_note=""
+if [ "${RUSTDESK_WEBSOCKET:-}" = "Y" ]; then ws_note=' "Use WebSocket" ligado por padrão (DEFAULT_SETTINGS).'; fi
 cat > "$tree/EUROSTEC.md" <<MD
 # RustDesk $tag com marca Eurostec
 
@@ -81,7 +84,7 @@ cat > "$tree/EUROSTEC.md" <<MD
 [rustdesk/rustdesk@$tag](https://github.com/rustdesk/rustdesk/tree/$tag) (commit $upstream_commit).
 
 Diferenças em relação ao upstream:
-- \`libs/hbb_common/src/config.rs\`: ID server \`$RUSTDESK_HOST\` e a chave pública do servidor da Eurostec.
+- \`libs/hbb_common/src/config.rs\`: ID server \`$RUSTDESK_HOST\`, API server \`https://$RUSTDESK_HOST\` (só para o modo WebSocket usar wss na porta 443) e a chave pública do servidor da Eurostec, fixos em OVERWRITE_SETTINGS.$ws_note
 - Ícones e logos em \`res/\`, \`flutter/assets/\`, \`flutter/windows/runner/resources/\` e \`flutter/macos/Runner/\`.
 - Nome do aplicativo no Windows: \`${BRAND_APP_NAME:-RustDesk}\` (APP_NAME em config.rs, metadados winres, MSI). macOS e Linux seguem "RustDesk" por dentro.
 - \`.github/workflows/flutter-build.yml\`: só os jobs de Windows, Linux e macOS.

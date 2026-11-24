@@ -18,7 +18,7 @@ main (este branch)                 tags 1.5.0-1, 1.5.1-1, ... (órfãs)
 
 1. `sync.yml` roda todo dia (ou à mão). `scripts/sync.sh` pergunta ao GitHub qual é a última release do `rustdesk/rustdesk`; se já existe uma tag `X.Y.Z-N` aqui, para.
 2. Clona a tag do upstream com o submódulo `libs/hbb_common`, vendoriza o submódulo e aplica:
-   - `embed-server.sh`: `RENDEZVOUS_SERVERS` e `RS_PUB_KEY` em `libs/hbb_common/src/config.rs`, e os campos ID server, relay, API server e chave entram em `OVERWRITE_SETTINGS`, o que os deixa fixos e desabilitados na tela de rede (o mesmo mecanismo do `custom.txt` da versão Pro);
+   - `embed-server.sh`: `RENDEZVOUS_SERVERS` e `RS_PUB_KEY` em `libs/hbb_common/src/config.rs`, e os campos ID server, relay, API server (`https://<host>`) e chave entram em `OVERWRITE_SETTINGS`, o que os deixa fixos e desabilitados na tela de rede (o mesmo mecanismo do `custom.txt` da versão Pro). Com `RUSTDESK_WEBSOCKET=Y`, "Use WebSocket" entra ligado em `DEFAULT_SETTINGS` (veja [Porta 443](#porta-443-modo-websocket));
    - `set-app-name.sh` (quando `BRAND_APP_NAME` está definido): no Windows o aplicativo passa a se chamar `<nome>` por dentro: `<nome>.exe` instalado, serviço, firewall, atalhos, pasta em Program Files, título da janela e pasta de configuração `%APPDATA%\<nome>`; metadados do exe e MSI acompanham. macOS e Linux continuam `RustDesk.app` e `/usr/bin/rustdesk` por dentro, com ícone e logo da Eurostec, porque lá o nome é caminho de pacote;
    - `apply-branding.sh`: todos os ícones e logos (lista em `branding/README.md`); opcionalmente o nome do produto nos metadados do `.exe` e do `.app`;
    - `prune-jobs.py`: tira do `flutter-build.yml` os jobs de iOS, Android, sciter, flatpak, web e os `publish` que não usamos;
@@ -39,6 +39,7 @@ Uma vez só, em Settings do repositório:
 | --- | --- | --- |
 | Variables | `RUSTDESK_HOST` | `rustdesk.eurobotics.com.br` |
 | Variables | `RUSTDESK_KEY` | chave pública do servidor (`scripts/show-key.sh` no repo do servidor). Não é segredo. |
+| Variables | `RUSTDESK_WEBSOCKET` | opcional: `Y` gera o cliente com "Use WebSocket" ligado de fábrica (porta 443, sempre via relay). Vazio ou `N` mantém o modo direto, com o botão disponível para o usuário. |
 | Variables | `BRAND_APP_NAME` | `nexus-desk`: nome do aplicativo no Windows e prefixo dos arquivos da release. Só letras, números e hífen (regra do instalador). Vazio mantém "rustdesk". |
 | Variables | `BRAND_PRODUCT_NAME` | opcional: texto das propriedades do `.exe` e do `.app`, se quiser diferente de `BRAND_APP_NAME`. |
 | Secrets | `CLIENT_REPO_TOKEN` | PAT fine-grained só para este repositório, com **Contents: write** e **Workflows: write** (a tag carrega `.github/workflows`). |
@@ -76,7 +77,19 @@ Um repositório público sem commits por 60 dias tem o `schedule` desligado pelo
 - **macOS:** sem notarização, o Gatekeeper bloqueia na primeira abertura: botão direito no app › *Abrir*, ou `xattr -d com.apple.quarantine /Applications/RustDesk.app`.
 - **Linux:** `.deb` para Ubuntu/Debian e `.AppImage` para o resto.
 - No Windows o cliente se instala como `nexus-desk` (exe, serviço, atalhos) e usa a pasta `%APPDATA%\nexus-desk`, separada de um RustDesk oficial: pode coexistir, mas o ID é outro. No macOS e Linux o app continua se chamando RustDesk por dentro e divide a configuração com o oficial.
-- Os campos de servidor (ID server, relay, API, chave) aparecem desabilitados nas configurações de rede: estão fixos no binário.
+- Os campos de servidor (ID server, relay, API, chave) aparecem desabilitados nas configurações de rede: estão fixos no binário. O API server `https://rustdesk.eurobotics.com.br` não é uma API (o servidor open source não tem): só existe para o modo WebSocket usar `wss`.
+
+## Porta 443: modo WebSocket
+
+Rede que bloqueia as portas 21115-21119 (o navegador funciona, o cliente fica em "Conectando ao servidor"): em Configurações › Rede, ligue **Use WebSocket**. O cliente passa a conectar em `wss://rustdesk.eurobotics.com.br/ws/id` e `/ws/relay`, porta 443 com TLS, que o Caddy do servidor repassa para o hbbs e o hbbr. É tráfego HTTPS comum, o mesmo caminho que o TeamViewer usa quando a 5938 está fechada.
+
+Diferenças em relação ao modo normal:
+
+- Toda sessão passa pelo relay, sem conexão direta: mais latência e saída de rede do servidor. Por isso o padrão continua sendo o modo direto.
+- O cliente **não troca de modo sozinho**. Ou o usuário liga o botão, ou o instalador foi gerado com `RUSTDESK_WEBSOCKET=Y`. Um fallback automático exige um patch no `rendezvous_mediator.rs` do upstream, que não fazemos hoje.
+- `RUSTDESK_WEBSOCKET=Y` entra em `DEFAULT_SETTINGS`, não em `OVERWRITE_SETTINGS`: é o valor inicial, e o usuário ainda pode desligar.
+
+Para um lote de instaladores "só 443": `gh variable set RUSTDESK_WEBSOCKET --body Y` e `gh workflow run sync.yml -f rebuild=true`; depois volte a variável para vazio, ou a release seguinte sai igual. O servidor precisa estar com a porta 443 no ar (`deploy/Caddyfile` em `eurobotic/rustdesk_srv`).
 
 ## Fallback sem rebuild
 
